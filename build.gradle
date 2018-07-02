@@ -1,0 +1,74 @@
+apply plugin: 'java'
+apply plugin: 'maven'
+apply plugin: 'signing'
+
+version = '0.1'
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'jvm-runtime',
+                   'Implementation-Version': version
+    }
+}
+
+task javadocJar(type: Jar) {
+    classifier = 'javadoc'
+    from javadoc
+}
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives javadocJar, sourcesJar
+}
+
+signing {
+    sign configurations.archives
+}
+
+group = "de.inoio.kubeless"
+archivesBaseName = "jvm-runtime"
+
+uploadArchives {
+  repositories {
+    mavenDeployer {
+      beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+      repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+        authentication(userName: ossrhUsername, password: ossrhPassword)
+      }
+
+      snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
+        authentication(userName: ossrhUsername, password: ossrhPassword)
+      }
+
+      pom.project {
+        name 'jvm-runtime'
+        packaging 'jar'
+        description 'Dependencies to deploy jvm code to kubeless'
+        url 'https://github.com/inoio/kubeless-jvm'
+
+        scm {
+          url 'https://github.com/inoio/kubeless-jvm'
+        }
+
+        licenses {
+          license {
+            name 'The Apache License, Version 2.0'
+            url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+          }
+        }
+
+        developers {
+          developer {
+            id 'christian.hennig'
+            name 'Christian Hennig'
+            email 'christian@inoio.de'
+          }
+        }
+      }
+    }
+  }
+}
